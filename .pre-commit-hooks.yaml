@@ -1,0 +1,8 @@
+- id: ensure-sops
+  name: ensure-sops
+  description: Check if your files are encrypted with Mozilla SOPS or not.
+  language: python
+  entry: ensure_sops
+  minimum_pre_commit_version: 2.9.2
+  types_or: [ json, yaml, ini ]  # dotenv is not supported, yet.
+  files: '((((enc|secrets?)\.).+)|(.+(\.(enc|secrets?))))'

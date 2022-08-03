@@ -1,0 +1,63 @@
+[tool.poetry]
+name = "ensure_sops"
+version = "0.1.0"
+description = "Check if your files are encrypted with Mozilla SOPS or not. Can act as pre-commit hook as well."
+authors = ["Engineering Team at Tacto Technology GmbH. <engineering@tacto.ai>"]
+license = "BSD 3-Clause License"
+
+[tool.poetry.dependencies]
+python = ">=3.7,<3.11"
+"ruamel.yaml" = "^0.17.21"
+python-dotenv = "^0.20.0"
+
+
+[tool.poetry.dev-dependencies]
+pytest = "^7.1.2"
+sh = "^1.14.3"
+mypy = "^0.971"
+pytest-cov = "^3.0.0"
+pytest-mock = "^3.8.2"
+tox = "^3.25.1"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+ensure_sops = "ensure_sops.main:main"
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "--cov=ensure_sops --cov-report xml"
+testpaths = [
+    "tests",
+]
+
+[tool.coverage.run]
+omit = ['ensure_sops/__init__.py', 'ensure_sops/__main__.py', 'tests/']
+
+
+[tool.flake8]
+max-line-length = 88
+per-file-ignores = ['__init__.py:F401']
+[tool.black]
+line-length = 88
+target-version = ["py37", "py38", "py39", "py310"]
+
+[tool.isort]
+profile = "black"
+
+
+[tool.tox]
+legacy_tox_ini = """
+[tox]
+envlist = py37,py38,py39,py310
+isolated_build = True
+
+[testenv]
+whitelist_externals = poetry
+
+commands =
+    poetry install -v
+    poetry run pytest
+"""
