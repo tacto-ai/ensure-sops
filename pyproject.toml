@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ensure_sops"
-version = "0.1.0"
+version = "0.1.1"
 description = "Check if your files are encrypted with Mozilla SOPS or not. Can act as pre-commit hook as well."
 authors = ["Engineering Team at Tacto Technology GmbH. <engineering@tacto.ai>"]
 license = "BSD 3-Clause License"
