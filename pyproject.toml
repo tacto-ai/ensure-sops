@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ensure_sops"
-version = "0.1.1"
+version = "0.1.2"
 description = "Check if your files are encrypted with Mozilla SOPS or not. Can act as pre-commit hook as well."
 authors = ["Engineering Team at Tacto Technology GmbH. <engineering@tacto.ai>"]
 license = "BSD 3-Clause License"
@@ -9,14 +9,12 @@ license = "BSD 3-Clause License"
 python = ">=3.7,<3.11"
 "ruamel.yaml" = "^0.17.21"
 python-dotenv = "^0.20.0"
+ordered-set = "^4.1.0"
 
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.1.2"
-sh = "^1.14.3"
-mypy = "^0.971"
 pytest-cov = "^3.0.0"
-pytest-mock = "^3.8.2"
 tox = "^3.25.1"
 
 [build-system]

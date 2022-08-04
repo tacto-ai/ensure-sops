@@ -1,14 +1,15 @@
+import pathlib
 import sys
-from argparse import ArgumentParser, FileType
-from io import TextIOWrapper
+from argparse import ArgumentParser
 from typing import Dict, List, Optional
 
+from .exceptions import ValidationError
 from .validator import Methods, SopsValidator
 
 
 def _get_parser() -> ArgumentParser:
     argparser = ArgumentParser()
-    argparser.add_argument("files", type=FileType("r"), nargs="+")
+    argparser.add_argument("files", type=pathlib.Path, nargs="+")
     argparser.add_argument(
         "--method", type=Methods, choices=list(Methods), default=Methods.strict
     )
@@ -16,14 +17,17 @@ def _get_parser() -> ArgumentParser:
 
 
 def _validate_files(
-    files: List[TextIOWrapper], method: Methods
-) -> Dict[str, List[str]]:
+    paths: List[pathlib.Path], method: Methods
+) -> Dict[pathlib.Path, str]:
     failed_files = {}
-    for file in files:
-        validator = SopsValidator(file, file.name, method=method)
-        is_encrypted, failed_keys = validator.is_encrypted
-        if not is_encrypted:
-            failed_files[file.name] = failed_keys
+    for path in paths:
+        with path.open() as stream:
+            validator = SopsValidator(stream, path.name, method=method)
+            fmt, values = validator.parse()
+            try:
+                validator.check_encryption(fmt, values)
+            except ValidationError as e:
+                failed_files[path] = str(e)
     return failed_files
 
 
@@ -31,10 +35,10 @@ def main(args: Optional[List[str]] = None) -> int:
     parser = _get_parser()
     parsed_args = parser.parse_args(args)
 
-    failed_files = _validate_files(parsed_args.files, parsed_args.method)
+    errors = _validate_files(parsed_args.files, parsed_args.method)
 
-    if failed_files:
-        for filename, keys in failed_files.items():
-            print(f"Unencrypted keys found in {filename}, keys={keys}", file=sys.stdout)
+    if errors:
+        for path, error in errors.items():
+            print(f"{path} - {error}", file=sys.stderr)
         return 1
     return 0

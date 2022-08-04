@@ -1,5 +1,4 @@
 import configparser
-import enum
 import io
 import json
 import logging
@@ -119,11 +118,3 @@ class BinFormat(Format):
 
     def parse(self, raw_string: str) -> Tuple[bool, Optional[Dict[str, Any]]]:
         return False, None
-
-
-class Formats(enum.Enum):
-    json = JsonFormat()
-    ini = IniFormat()
-    yaml = YamlFormat()
-    env = EnvFormat()
-    bin = BinFormat()

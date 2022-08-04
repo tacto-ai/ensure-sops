@@ -2,7 +2,7 @@ import io
 
 import pytest
 
-from ensure_sops.formats import (
+from ensure_sops import (
     BinFormat,
     EnvFormat,
     Format,
@@ -25,7 +25,7 @@ from ensure_sops.formats import (
 def test_formatter_encrypted(extension, formatter_class, encrypt_file):
     """
     Check format's behavior for encrypted files. All should succeed to parse and
-    validate their encryption status.
+    validate existence of sops related keys.
     """
     path = encrypt_file(extension)
     formatter = formatter_class()
@@ -34,8 +34,8 @@ def test_formatter_encrypted(extension, formatter_class, encrypt_file):
     assert is_success
     assert values.keys()
     assert any((key for key in values if formatter.ignore_pattern.match(key)))
-    is_encrypted, cleaned_values = formatter.filter_values(values)
-    assert is_encrypted
+    has_sops_key, cleaned_values = formatter.filter_values(values)
+    assert has_sops_key
     assert not any(
         (key for key in cleaned_values if formatter.ignore_pattern.match(key))
     )
@@ -53,7 +53,7 @@ def test_formatter_encrypted(extension, formatter_class, encrypt_file):
 def test_formatter_unencrypted(extension, formatter_class, source_file):
     """
     Check format's behavior for unencrypted files. All should succeed to parse and
-    validate encryption.
+    validate non-existence of sops related keys.
     """
     path = source_file(extension)
     formatter = formatter_class()
@@ -62,8 +62,9 @@ def test_formatter_unencrypted(extension, formatter_class, source_file):
     assert is_success
     assert values.keys()
     assert not any((key for key in values if formatter.ignore_pattern.match(key)))
-    is_encrypted, cleaned_values = formatter.filter_values(values)
-    assert not is_encrypted
+    has_sops_key, cleaned_values = formatter.filter_values(values)
+    assert not has_sops_key
+    assert cleaned_values == values
 
 
 @pytest.mark.parametrize(
@@ -72,15 +73,15 @@ def test_formatter_unencrypted(extension, formatter_class, source_file):
 def test_formatter_empty(formatter_class):
     """
     Check format's behavior for unencrypted files. All should succeed to parse and
-    validate encryption.
+    validate non-existence of sops related keys.
     """
     stream = io.StringIO()
     formatter = formatter_class()
     is_success, values = formatter.parse(stream.read())
     assert not is_success
     assert values is None
-    is_encrypted, cleaned_values = formatter.filter_values({})
-    assert not is_encrypted
+    has_sops_key, cleaned_values = formatter.filter_values({})
+    assert not has_sops_key
     assert not cleaned_values
 
 
@@ -127,8 +128,8 @@ def test_bin_formatter(encrypt_file):
         is_success, values = formatter.parse(stream.read())
     assert not is_success
     assert values is None
-    is_encrypted, cleaned_values = formatter.filter_values({})
-    assert not is_encrypted
+    has_sops_key, cleaned_values = formatter.filter_values({})
+    assert not has_sops_key
     assert not cleaned_values
 
 

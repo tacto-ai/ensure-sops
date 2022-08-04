@@ -1,29 +1,17 @@
-import enum
 import itertools
-from functools import cached_property
-from typing import Any, Dict, Iterable, List, Optional, TextIO, Tuple, Union
+from typing import Any, Dict, Iterable, List, Optional, Set, TextIO, Tuple, Union
 
-from ensure_sops.formats import Formats
+from ordered_set import OrderedSet
 
-
-class Methods(enum.Enum):
-    """
-    strict: Try either the one matching with file extension or json
-    bruteforce: Try all, starting from the one which matches with file extensions
-    """
-
-    strict = "strict"
-    bruteforce = "bruteforce"
-
-    def __str__(self):
-        return self.name
+from ensure_sops import MissingSOPSMeta, UnencryptedItemsError, UnknownFormatError
+from ensure_sops.enums import Formats, Methods
 
 
 def _check_encryption(
     container: Union[List, Dict], prefix: str = ""
-) -> Tuple[List[str], List[str]]:
-    successful_keys = []
-    failed_keys = []
+) -> Tuple[Set[str], Set[str]]:
+    successful_keys = OrderedSet([])
+    failed_keys = OrderedSet([])
 
     iterable: Iterable[Tuple[Any, Any]]
     if isinstance(container, dict):
@@ -34,16 +22,16 @@ def _check_encryption(
     for key, value in iterable:
         if (
             isinstance(value, str) and value.startswith("ENC[") and value.endswith("]")
-        ) or value is None:
-            successful_keys.append(f"{prefix}{key}")
+        ) or value in ("", None):
+            successful_keys.add(f"{prefix}{key}")
         elif isinstance(value, (dict, list)):
             successful_subkeys, failed_subkeys = _check_encryption(
                 value, prefix=f"{prefix}{key}."
             )
-            successful_keys.extend(successful_subkeys)
-            failed_keys.extend(failed_subkeys)
+            successful_keys.update(successful_subkeys)
+            failed_keys.update(failed_subkeys)
         else:
-            failed_keys.append(f"{prefix}{key}")
+            failed_keys.add(f"{prefix}{key}")
     return successful_keys, failed_keys
 
 
@@ -53,7 +41,6 @@ class SopsValidator:
 
     def __init__(self, stream: TextIO, filename: str, method: Methods = Methods.strict):
         self.stream = stream
-        self.values: Dict[str, Any] = {}
         self.filename = filename
         self.method = method
         self._parsers = self._determine_parsers(self.filename)
@@ -86,28 +73,23 @@ class SopsValidator:
         self._file_cache = file_content
         self.stream.seek(position)
 
-    @cached_property
-    def is_encrypted(self) -> Tuple[bool, List[str]]:
-        if self.format == Formats.bin:
-            return False, []
+    def check_encryption(self, fmt: Formats, values: Dict[str, Any]) -> None:
+        if fmt == Formats.bin:
+            raise UnknownFormatError([fmt_class for fmt_class in self._parsers])
         else:
-            has_sops_keys, user_defined_values = self.format.value.filter_values(
-                self.values
-            )
+            has_sops_keys, user_defined_values = fmt.value.filter_values(values)
             successful_keys, failed_keys = _check_encryption(user_defined_values)
-            if failed_keys or not has_sops_keys:
-                return False, failed_keys
-            else:
-                return True, failed_keys
+            if failed_keys:
+                raise UnencryptedItemsError(failed_keys)
+            elif not has_sops_keys:
+                raise MissingSOPSMeta(list(values.keys()))
 
-    @cached_property
-    def format(self) -> Formats:
+    def parse(self) -> Tuple[Formats, Dict[str, Any]]:
         self._cache_file()
         for fmt in self._parsers:
             is_success, values = fmt.value.parse(self._file_cache)
             if is_success:
-                self.values = values
-                return fmt
+                return fmt, values
 
         self._file_cache = None  # Cleanup Memory
-        return Formats.bin
+        return Formats.bin, {}
