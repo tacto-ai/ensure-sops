@@ -6,7 +6,7 @@ authors = ["Engineering Team at Tacto Technology GmbH. <engineering@tacto.ai>"]
 license = "BSD 3-Clause License"
 
 [tool.poetry.dependencies]
-python = ">=3.7,<3.13"
+python = ">=3.10,<3.13"
 "ruamel.yaml" = "^0.17.21"
 python-dotenv = "^0.20.0"
 ordered-set = "^4.1.0"
@@ -40,7 +40,7 @@ max-line-length = 88
 per-file-ignores = ['__init__.py:F401']
 [tool.black]
 line-length = 88
-target-version = ["py37", "py38", "py39", "py310", "py311", "py312"]
+target-version = ["py310", "py311", "py312"]
 
 [tool.isort]
 profile = "black"
@@ -49,7 +49,7 @@ profile = "black"
 [tool.tox]
 legacy_tox_ini = """
 [tox]
-envlist = py37,py38,py39,py310,py311,py312
+envlist = py310,py311,py312
 isolated_build = True
 
 [testenv]
