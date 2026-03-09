@@ -6,7 +6,7 @@ authors = ["Engineering Team at Tacto Technology GmbH. <engineering@tacto.ai>"]
 license = "BSD 3-Clause License"
 
 [tool.poetry.dependencies]
-python = ">=3.10,<3.13"
+python = ">=3.10,<3.15"
 "ruamel.yaml" = "^0.17.21"
 python-dotenv = "^0.20.0"
 ordered-set = "^4.1.0"
@@ -49,7 +49,7 @@ profile = "black"
 [tool.tox]
 legacy_tox_ini = """
 [tox]
-envlist = py310,py311,py312
+envlist = py310,py311,py312,py314
 isolated_build = True
 
 [testenv]
