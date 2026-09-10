@@ -8,13 +8,13 @@ license = "BSD 3-Clause License"
 [tool.poetry.dependencies]
 python = ">=3.10,<3.15"
 "ruamel.yaml" = "^0.17.21"
-python-dotenv = "^0.20.0"
+python-dotenv = "^1.2.2"
 ordered-set = "^4.1.0"
 
 
 [tool.poetry.dev-dependencies]
-pytest = "^7.1.2"
-pytest-cov = "^3.0.0"
+pytest = "^9.0.3"
+pytest-cov = "^7.0.0"
 tox = "^3.25.1"
 
 [build-system]
